@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -40,17 +41,16 @@ func NewRedBookEngine() (*RedBookEngine, error) {
 	if err != nil {
 		return nil, err
 	}
-	r.BrowserDataDir = currDir
-	r.DataDir = currDir
+	r.BrowserDataDir = filepath.Join(currDir, browserDataDir)
+	r.DataDir = filepath.Join(currDir, dataDir)
+	fmt.Println(currDir)
 
-	os.MkdirAll(browserDataDir, 0755)
-	os.MkdirAll(dataDir, 0755)
-
-	pw, err := playwright.Run()
-	if err != nil {
+	if err = os.MkdirAll(r.BrowserDataDir, 0755); err != nil {
 		return nil, err
 	}
-	r.PW = pw
+	if err = os.MkdirAll(r.DataDir, 0755); err != nil {
+		return nil, err
+	}
 
 	opts := playwright.BrowserTypeLaunchPersistentContextOptions{
 		DownloadsPath: playwright.String(r.DataDir),
@@ -62,6 +62,11 @@ func NewRedBookEngine() (*RedBookEngine, error) {
 		},
 	}
 
+	pw, err := playwright.Run()
+	if err != nil {
+		return nil, err
+	}
+	r.PW = pw
 	browserContext, err := pw.Chromium.LaunchPersistentContext(r.BrowserDataDir, opts)
 	if err != nil {
 		return nil, err
@@ -73,6 +78,11 @@ func NewRedBookEngine() (*RedBookEngine, error) {
 		return nil, err
 	}
 	page.SetDefaultTimeout(60000)
+	pageOpts := playwright.PageScreenshotOptions{
+		FullPage: playwright.Bool(true),
+		Path:     playwright.String(r.DataDir + "/" + time.Now().Format(tsLayout) + ".png"),
+	}
+	page.Screenshot(pageOpts)
 	r.Page = page
 
 	return r, nil
