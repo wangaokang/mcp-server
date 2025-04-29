@@ -4,14 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/ThinkInAIXYZ/go-mcp/protocol"
-	"github.com/ThinkInAIXYZ/go-mcp/transport"
 	"log"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/ThinkInAIXYZ/go-mcp/protocol"
 	"github.com/ThinkInAIXYZ/go-mcp/server"
+	"github.com/ThinkInAIXYZ/go-mcp/transport"
 	"github.com/playwright-community/playwright-go"
 )
 
@@ -30,12 +30,6 @@ type RedBookEngine struct {
 	PW             *playwright.Playwright
 	BrowserDataDir string
 	DataDir        string
-}
-
-// ====================== 工具响应结构体 ======================
-type ToolResponse struct {
-	Content string `json:"content,omitempty"`
-	Error   string `json:"error,omitempty"`
 }
 
 // ====================== 初始化方法 ======================
@@ -495,7 +489,7 @@ func main() {
 	mcpServer, _ := server.NewServer(
 		getTransport(),
 		server.WithServerInfo(protocol.Implementation{
-			Name:    "current-time-v2-server",
+			Name:    "login-redBook",
 			Version: "1.0.0",
 		}),
 	)
@@ -504,7 +498,11 @@ func main() {
 	loginTool, _ := protocol.NewTool(
 		"login",
 		"执行小红书账号登录操作",
-		struct{}{}, // 无参数
+		struct{}{},
+		//struct {
+		//	UserName string `json:"username" description:"登录账号"`
+		//	Password string `json:"password" description:"登录密码"`
+		//}{},
 	)
 	mcpServer.RegisterTool(loginTool, service.LoginTool)
 
