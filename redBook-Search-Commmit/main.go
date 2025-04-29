@@ -33,6 +33,8 @@ type RedBookEngine struct {
 	DataDir        string
 }
 
+type loginArgs struct{}
+
 // ====================== 初始化方法 ======================
 func NewRedBookEngine() (*RedBookEngine, error) {
 	r := &RedBookEngine{}
@@ -421,7 +423,6 @@ func wrapTool[T any](fn func(context.Context, T) (string, error)) func(context.C
 		if err := protocol.VerifyAndUnmarshal(req.RawArguments, &args); err != nil {
 			return nil, err
 		}
-
 		content, err := fn(ctx, args)
 		if err != nil {
 			return &protocol.CallToolResult{
@@ -429,7 +430,6 @@ func wrapTool[T any](fn func(context.Context, T) (string, error)) func(context.C
 				Content: []protocol.Content{},
 			}, nil
 		}
-
 		return &protocol.CallToolResult{
 			Content: []protocol.Content{
 				protocol.TextContent{
@@ -443,7 +443,6 @@ func wrapTool[T any](fn func(context.Context, T) (string, error)) func(context.C
 
 // 登录工具适配
 func (m *MCPService) LoginTool(ctx context.Context, req *protocol.CallToolRequest) (*protocol.CallToolResult, error) {
-	type loginArgs struct{}
 	return wrapTool(func(ctx context.Context, args loginArgs) (string, error) {
 		return m.Engine.Login()
 	})(ctx, req)
@@ -505,15 +504,16 @@ func main() {
 	)
 
 	// 注册登录工具
-	loginTool, _ := protocol.NewTool(
-		"login",
-		"执行小红书账号登录操作",
-		struct{}{},
-		//struct {
-		//	UserName string `json:"username" description:"登录账号"`
-		//	Password string `json:"password" description:"登录密码"`
-		//}{},
-	)
+	//loginTool, _ := protocol.NewTool(
+	//	"login",
+	//	"执行小红书账号登录操作",
+	//	struct{}{},
+	//	//struct {
+	//	//	UserName string `json:"username" description:"登录账号"`
+	//	//	Password string `json:"password" description:"登录密码"`
+	//	//}{},
+	//)
+	loginTool, _ := protocol.NewTool("login", "登录小红书账号", loginArgs{})
 	mcpServer.RegisterTool(loginTool, service.LoginTool)
 
 	// 注册搜索工具
